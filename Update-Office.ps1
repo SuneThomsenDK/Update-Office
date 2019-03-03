@@ -24,10 +24,10 @@
 	Shows all available Office updates in GridView
 
 .NOTES
-	Version: 1.9.3.3
+	Version: 1.9.3.4
 	Author: Sune Thomsen
 	Creation date: 22-02-2019
-	Last modified date: 03-03-2019
+	Last modified date: 04-03-2019
 
 .LINK
 	https://github.com/SuneThomsenDK
@@ -145,11 +145,19 @@
 			$KBNumber = $Update.KBNumber
 			$DisplayName = $Update.DisplayName
 			$PatchCode = $Update.PatchCode
-			$Process = "C:\Windows\System32\msiexec.exe"
+			$Process = "msiexec.exe"
 			$CheckPatchCode = Check-Registry
+			
+			$MSPArguments = @(
+				"/p"
+				"""$MSPFile"""
+				"/qn"
+				"REBOOT=ReallySuppress"
+				"MSIRESTARTMANAGERCONTROL=Disable"
+			)
 
 			if (!($CheckPatchCode)) {
-				$MSPInstall = Start-Process $process -ArgumentList "/p $MSPFile /qn REBOOT=ReallySuppress MSIRESTARTMANAGERCONTROL=Disable" -PassThru -Wait
+				$MSPInstall = Start-Process $process -ArgumentList $MSPArguments -PassThru -Wait
 				$MSPInstall.WaitForExit()
 				if (($MSPInstall.ExitCode -eq 0) -or ($MSPInstall.ExitCode -eq 3010)){
 					$Script:CountInstall++
@@ -337,12 +345,37 @@
 				#===============================================================================
 				#	Format CreationDateUTC
 				#===============================================================================
-				$CreationDateUTC = $CreationDateUTC[1]
-				$CreationDateUTC = $CreationDateUTC.Split('/')
-				$CreationDateUTC = "{0}/{1}/{2}" -f $CreationDateUTC[1],$CreationDateUTC[0],$CreationDateUTC[2]
-				$CreationDateUTC = Get-Date $CreationDateUTC -f "dd-MM-yyyy HH:mm:ss"
-				$CreationDateUTC = ([DateTime]::ParseExact($CreationDateUTC,"dd-MM-yyyy HH:mm:ss",[Globalization.CultureInfo]::InvariantCulture))
-				$CreationDateUTC
+				$LocalCulture = Get-Culture
+				$LanguageCode = $LocalCulture.LCID
+				$DateFormat = [System.Globalization.CultureInfo]::GetCultureInfo($LanguageCode).DateTimeFormat.ShortDatePattern
+				$TimeFormat = [System.Globalization.CultureInfo]::GetCultureInfo($LanguageCode).DateTimeFormat.LongTimePattern
+				$SplitDate = ($CreationDateUTC[1] -split " ")[0]
+				$SplitTime = ($CreationDateUTC[1] -split " ")[1]
+
+				if (($DateFormat -like "D*")) {
+					$CreationDateUTC = $SplitDate
+					$CreationDateUTC = $CreationDateUTC.Split('/')
+					$CreationDateUTC = "{0}/{1}/{2}" -f $CreationDateUTC[1],$CreationDateUTC[0],$CreationDateUTC[2]
+					$CreationDateUTC = $CreationDateUTC+"`t"+$SplitTime
+					$CreationDateUTC = Get-Date $CreationDateUTC -f "$DateFormat $TimeFormat"
+					$CreationDateUTC = ([DateTime]::ParseExact($CreationDateUTC,"$DateFormat $TimeFormat",[Globalization.CultureInfo]::InvariantCulture))
+				}
+
+				if (($DateFormat -like "M*")) {
+					$CreationDateUTC = $SplitDate
+					$CreationDateUTC = $CreationDateUTC+"`t"+$SplitTime
+					$CreationDateUTC = Get-Date $CreationDateUTC -f "$DateFormat $TimeFormat"
+					$CreationDateUTC = ([DateTime]::ParseExact($CreationDateUTC,"$DateFormat $TimeFormat",[Globalization.CultureInfo]::InvariantCulture))
+				}
+
+				if (($DateFormat -like "Y*")) {
+					$CreationDateUTC = $SplitDate
+					$CreationDateUTC = $CreationDateUTC.Split('/')
+					$CreationDateUTC = "{0}/{1}/{2}" -f $CreationDateUTC[2],$CreationDateUTC[0],$CreationDateUTC[1]
+					$CreationDateUTC = $CreationDateUTC+"`t"+$SplitTime
+					$CreationDateUTC = Get-Date $CreationDateUTC -f "$DateFormat $TimeFormat"
+					$CreationDateUTC = ([DateTime]::ParseExact($CreationDateUTC,"$DateFormat $TimeFormat",[Globalization.CultureInfo]::InvariantCulture))
+				}
 
 				#===============================================================================
 				#	Add MSP Properties to Updates
@@ -409,7 +442,7 @@
 		} | ft @{n="Total installation time`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t";e={$_.Hours,"Hours",$_.Minutes,"Minutes",$_.Seconds,"Seconds",$_.Milliseconds,"Milliseconds" -join " "}}
 	}
 
-Update-Office -FilePath $UpdateRoot -GridView
+Update-Office -FilePath $UpdateRoot
 
 	#Write-Host "`n"
 	#Read-Host "Press any key to exit..."
