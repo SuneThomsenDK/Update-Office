@@ -1,12 +1,12 @@
 ﻿<#
 .SYNOPSIS
-	Install Microsoft Office 2016 updates offline
+	Install Microsoft Office 2010, 2013 and 2016 updates offline
 
 .DESCRIPTION
-	The purpose of this script is to install Microsoft Office 2016 updates offline or during SCCM OS Deployment instead of WSUS, which takes forever to complete
+	The purpose of this script is to install Microsoft Office updates offline or during SCCM OS Deployment instead of WSUS, which takes forever to complete
 	This script reduced my SCCM OS Deployment time by 20-30 minutes depending on the hardware
 
-.PARAMETER UpdatePath
+.PARAMETER UpdateRoot
 	Used by script Update-Office.ps1
 	Changes the default path from "$PSScriptRoot\Updates\" to the path specified
 
@@ -15,19 +15,19 @@
 	Shows all available Office updates in GridView
 
 .EXAMPLE
-	Update-Office.ps1 -UpdatePath
+	Update-Office.ps1 -UpdateRoot
 	Changes the default path from "$PSScriptRoot\Updates\" to the path specified
 	
 	Function:
 	---------
-	Update-Office -FilePath $UpdatePath -GridView
+	Update-Office -FilePath $UpdateRoot -GridView
 	Shows all available Office updates in GridView
 
 .NOTES
-	Version: 1.9.3.1
+	Version: 1.9.3.3
 	Author: Sune Thomsen
 	Creation date: 22-02-2019
-	Last modified date: 01-03-2019
+	Last modified date: 03-03-2019
 
 .LINK
 	https://github.com/SuneThomsenDK
@@ -39,13 +39,14 @@
 	#Requires -RunAsAdministrator
 
 	Param (
-		[IO.FileInfo][String]$UpdatePath = "$PSScriptRoot\Updates\"
+		[System.IO.FileInfo][String]$UpdateRoot = "$PSScriptRoot\Updates\"
 	)
 
 	Function Get-MSPInfo {
+		[CmdletBinding()]
 		Param (
-			[Parameter(Mandatory = $true)][IO.FileInfo][String]$MSPFile,
-			[Parameter(Mandatory = $true)][ValidateSet('Classification', 'DisplayName', 'KBArticle Number', 'TargetProductName', 'CreationTimeUTC')][String]$Property
+			[Parameter(Mandatory = $true)][System.IO.FileInfo][String]$MSPFile,
+			[Parameter(Mandatory = $true)][ValidateSet("Classification", "DisplayName", "KBArticle Number", "TargetProductName", "CreationTimeUTC")][String]$Property
 		)
 		Try {
 			#===============================================================================
@@ -67,8 +68,9 @@
 	}
 
 	Function Get-MSPPatchCode {
+		[CmdletBinding()]
 		Param (
-			[Parameter(Mandatory = $true)][IO.FileInfo][String]$MSPFile
+			[Parameter(Mandatory = $true)][System.IO.FileInfo][String]$MSPFile
 		)
 		Try {
 			#===============================================================================
@@ -86,44 +88,102 @@
 		}
 	}
 
+	Function Check-Registry {
+		Try {
+			#===============================================================================
+			#	Check PatchCode in Registry
+			#===============================================================================
+			$Office2010 = "HKLM:\SOFTWARE\Microsoft\Office\14.0\Outlook"
+			$Office2013 = "HKLM:\SOFTWARE\Microsoft\Office\15.0\Outlook"
+			$Office2016 = "HKLM:\SOFTWARE\Microsoft\Office\16.0\Outlook"
+			$RegWin = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
+			$RegWoW = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+			$IsOffice = $Null
+
+			if ((Test-Path $Office2010)) {$IsOffice = Get-ItemProperty -Path $Office2010 -name Bitness -ErrorAction SilentlyContinue}
+			if ((Test-Path $Office2013)) {$IsOffice = Get-ItemProperty -Path $Office2013 -name Bitness -ErrorAction SilentlyContinue}
+			if ((Test-Path $Office2016)) {$IsOffice = Get-ItemProperty -Path $Office2016 -name Bitness -ErrorAction SilentlyContinue}
+
+			if (([System.Environment]::Is64BitOperatingSystem)) {
+				if (($IsOffice.Bitness -eq "x86")) {
+					$CheckPatchCode = Get-ItemProperty -Path $RegWoW |
+					Where-Object {$_.PSChildName -like "*$PatchCode*" -or $_.UninstallString -like "*$PatchCode*"} |
+					Select-Object -Property PSChildName, DisplayName, UninstallString |
+					Sort-Object -Property DisplayName -Unique
+				}
+				else {
+					$CheckPatchCode = Get-ItemProperty -Path $RegWin |
+					Where-Object {$_.PSChildName -like "*$PatchCode*" -or $_.UninstallString -like "*$PatchCode*"} |
+					Select-Object -Property PSChildName, DisplayName, UninstallString |
+					Sort-Object -Property DisplayName -Unique
+				}
+			}
+
+			if (!([System.Environment]::Is64BitOperatingSystem)) {
+				$CheckPatchCode = Get-ItemProperty -Path $RegWin |
+				Where-Object {$_.PSChildName -like "*$PatchCode*" -or $_.UninstallString -like "*$PatchCode*"} |
+				Select-Object -Property PSChildName, DisplayName, UninstallString |
+				Sort-Object -Property DisplayName -Unique
+			}
+			Return $CheckPatchCode.DisplayName
+		}
+		Catch {
+			Write-Output $_.Exception.Message
+			Return $Null
+		}
+	}
+
 	Function Install-MSPUpdate {
+		[CmdletBinding()]
 		Param (
-			[Parameter(Mandatory = $true)][IO.FileInfo][String]$MSPFile
+			[Parameter(Mandatory = $true)][System.IO.FileInfo][String]$MSPFile
 		)
 		Try {
 			#===============================================================================
 			#	Install MSP Update
 			#===============================================================================
+			$KBNumber = $Update.KBNumber
+			$DisplayName = $Update.DisplayName
+			$PatchCode = $Update.PatchCode
 			$Process = "C:\Windows\System32\msiexec.exe"
-			$MSPInstall = Start-Process $process -ArgumentList "/p $MSPFile /qn REBOOT=ReallySuppress MSIRESTARTMANAGERCONTROL=Disable" -PassThru -Wait
-			$MSPInstall.WaitForExit()
-			if (($MSPInstall.ExitCode -eq 0) -or ($MSPInstall.ExitCode -eq 3010)){
-				$Script:CountInstall++
-				Write-Host "Installing: $DisplayName ($($Update.BaseName))" -foregroundcolor "Green"
+			$CheckPatchCode = Check-Registry
+
+			if (!($CheckPatchCode)) {
+				$MSPInstall = Start-Process $process -ArgumentList "/p $MSPFile /qn REBOOT=ReallySuppress MSIRESTARTMANAGERCONTROL=Disable" -PassThru -Wait
+				$MSPInstall.WaitForExit()
+				if (($MSPInstall.ExitCode -eq 0) -or ($MSPInstall.ExitCode -eq 3010)){
+					$Script:CountInstall++
+					Write-Host "Installing: $DisplayName ($($Update.BaseName))" -foregroundcolor "Green"
+				}
+				else {
+					$Script:CountNotInstalled++
+					Write-Host "Attention: $DisplayName ($($Update.BaseName)) were not installed" -foregroundcolor "Cyan"
+					Write-Host "Possible cause: The program to be updated might not be installed, or the patch may update a different version of the program."
+				}
 			}
 			else {
 				$Script:CountNotInstalled++
-				Write-Host "Attention: $DisplayName ($($Update.BaseName)) were not installed" -foregroundcolor "Cyan"
-				Write-Host "Possible cause: The program to be updated might not be installed, or the patch may update a different version of the program."
+				Write-Host "Attention: $DisplayName ($($Update.BaseName)) is already installed" -foregroundcolor "Cyan"
 			}
 		}
 		Catch {
 			Write-Output $_.Exception.Message
+			Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
 			Return $NULL
 		}
 	}
 
 	Function Update-Office {
+		[CmdletBinding()]
 		Param (
-			[Parameter(Mandatory = $true)][IO.FileInfo][String]$FilePath,
-			[Switch]$GridView
+			[Parameter(Mandatory = $true)][System.IO.FileInfo][String]$FilePath,
+			[Parameter(Mandatory = $false)][Switch]$GridView
 		)
 		Measure-Command -Expression {
 			#===============================================================================
 			#	Set Variables
 			#===============================================================================
 			$OfficeUpdates = Get-ChildItem $FilePath -Recurse -File -Include *.msp
-			$RegPath = "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
 			$Script:CountInstall = 0
 			$Script:CountNotInstalled = 0
 
@@ -263,11 +323,6 @@
 				"proof-x-none"
 			)
 
-			Write-Host "`n"
-			Write-Host "===============================================================================" -ForegroundColor DarkGray
-			Write-Host "Installing Microsoft Office 2016 Updates"
-			Write-Host "===============================================================================" -ForegroundColor DarkGray
-
 			ForEach ($Update in $OfficeUpdates) {
 				#===============================================================================
 				#	Get MSP Properties
@@ -309,27 +364,13 @@
 			#===============================================================================
 			#	Update Office
 			#===============================================================================
-			ForEach ($Update in $OfficeUpdates) {
-				if (($Update.BaseName -in $OfficeArrayList)) {
-					$KBNumber = $Update.KBNumber
-					$DisplayName = $Update.DisplayName
-					$PatchCode = $Update.PatchCode
-					$CheckPatchCode = Get-ItemProperty $RegPath | Where-Object {$_.PSChildName -like "*$PatchCode*" -or $_.UninstallString -like "*$PatchCode*"} | Select-Object -Property PSChildName, DisplayName, UninstallString | Sort-Object -Property DisplayName -Unique
+			Write-Host "`n"
+			Write-Host "===============================================================================" -ForegroundColor DarkGray
+			Write-Host "Installing Microsoft Office 2016 Updates"
+			Write-Host "===============================================================================" -ForegroundColor DarkGray
 
-					Try {
-						if (!($CheckPatchCode)) {
-							Install-MSPUpdate -MSPFile "$($Update.FullName)"
-						}
-						else {
-							$Script:CountNotInstalled++
-							Write-Host "Attention: $DisplayName ($($Update.BaseName)) is already installed" -foregroundcolor "Cyan"
-						}
-					}
-					Catch {
-						Write-Output $_.Exception.Message
-						Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
-					}
-				}
+			ForEach ($Update in $OfficeUpdates) {
+				if (($Update.BaseName -in $OfficeArrayList)) {Install-MSPUpdate -MSPFile "$($Update.FullName)"}
 			}
 
 			Write-Host "`n"
@@ -338,26 +379,7 @@
 			Write-Host "===============================================================================" -ForegroundColor DarkGray
 
 			ForEach ($Update in $OfficeUpdates) {
-				if (($Update.BaseName -in $OfficeLIPArrayList)) {
-					$KBNumber = $Update.KBNumber
-					$DisplayName = $Update.DisplayName
-					$PatchCode = $Update.PatchCode
-					$CheckPatchCode = Get-ItemProperty $RegPath | Where-Object {$_.PSChildName -like "*$PatchCode*" -or $_.UninstallString -like "*$PatchCode*"} | Select-Object -Property PSChildName, DisplayName, UninstallString | Sort-Object -Property DisplayName -Unique
-
-					Try {
-						if (!($CheckPatchCode)) {
-							Install-MSPUpdate -MSPFile "$($Update.FullName)"
-						}
-						else {
-							$Script:CountNotInstalled++
-							Write-Host "Attention: $DisplayName ($($Update.BaseName)) is already installed" -foregroundcolor "Cyan"
-						}
-					}
-					Catch {
-						Write-Output $_.Exception.Message
-						Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
-					}
-				}
+				if (($Update.BaseName -in $OfficeLIPArrayList)) {Install-MSPUpdate -MSPFile "$($Update.FullName)"}
 			}
 
 			Write-Host "`n"
@@ -366,26 +388,7 @@
 			Write-Host "===============================================================================" -ForegroundColor DarkGray
 
 			ForEach ($Update in $OfficeUpdates) {
-				if (($Update.BaseName -in $OfficeLPArrayList)) {
-					$KBNumber = $Update.KBNumber
-					$DisplayName = $Update.DisplayName
-					$PatchCode = $Update.PatchCode
-					$CheckPatchCode = Get-ItemProperty $RegPath | Where-Object {$_.PSChildName -like "*$PatchCode*" -or $_.UninstallString -like "*$PatchCode*"} | Select-Object -Property PSChildName, DisplayName, UninstallString | Sort-Object -Property DisplayName -Unique
-
-					Try {
-						if (!($CheckPatchCode)) {
-							Install-MSPUpdate -MSPFile "$($Update.FullName)"
-						}
-						else {
-							$Script:CountNotInstalled++
-							Write-Host "Attention: $DisplayName ($($Update.BaseName)) is already installed" -foregroundcolor "Cyan"
-						}
-					}
-					Catch {
-						Write-Output $_.Exception.Message
-						Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
-					}
-				}
+				if (($Update.BaseName -in $OfficeLPArrayList)) {Install-MSPUpdate -MSPFile "$($Update.FullName)"}
 			}
 
 			Write-Host "`n"
@@ -394,26 +397,7 @@
 			Write-Host "===============================================================================" -ForegroundColor DarkGray
 
 			ForEach ($Update in $OfficeUpdates) {
-				if (($Update.BaseName -in $OfficePKArrayList)) {
-					$KBNumber = $Update.KBNumber
-					$DisplayName = $Update.DisplayName
-					$PatchCode = $Update.PatchCode
-					$CheckPatchCode = Get-ItemProperty $RegPath | Where-Object {$_.PSChildName -like "*$PatchCode*" -or $_.UninstallString -like "*$PatchCode*"} | Select-Object -Property PSChildName, DisplayName, UninstallString | Sort-Object -Property DisplayName -Unique
-
-					Try {
-						if (!($CheckPatchCode)) {
-							Install-MSPUpdate -MSPFile "$($Update.FullName)"
-						}
-						else {
-							$Script:CountNotInstalled++
-							Write-Host "Attention: $DisplayName ($($Update.BaseName)) is already installed" -foregroundcolor "Cyan"
-						}
-					}
-					Catch {
-						Write-Output $_.Exception.Message
-						Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
-					}
-				}
+				if (($Update.BaseName -in $OfficePKArrayList)) {Install-MSPUpdate -MSPFile "$($Update.FullName)"}
 			}
 
 			Write-Host "`n"
@@ -425,7 +409,7 @@
 		} | ft @{n="Total installation time`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t";e={$_.Hours,"Hours",$_.Minutes,"Minutes",$_.Seconds,"Seconds",$_.Milliseconds,"Milliseconds" -join " "}}
 	}
 
-Update-Office -FilePath $UpdatePath
+Update-Office -FilePath $UpdateRoot -GridView
 
 	#Write-Host "`n"
 	#Read-Host "Press any key to exit..."
