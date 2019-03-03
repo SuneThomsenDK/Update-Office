@@ -1,9 +1,9 @@
 ﻿<#
 .SYNOPSIS
-	Install Microsoft Office 2010, 2013 and 2016 updates offline
+	Install Microsoft Office Professional Plus 2010, 2013 and 2016 updates offline
 
 .DESCRIPTION
-	The purpose of this script is to install Microsoft Office updates offline or during SCCM OS Deployment instead of WSUS, which takes forever to complete
+	The purpose of this script is to install Office updates offline or during SCCM OS Deployment instead of WSUS, which takes forever to complete
 	This script reduced my SCCM OS Deployment time by 20-30 minutes depending on the hardware
 
 .PARAMETER UpdateRoot
@@ -409,7 +409,7 @@
 		} | ft @{n="Total installation time`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t";e={$_.Hours,"Hours",$_.Minutes,"Minutes",$_.Seconds,"Seconds",$_.Milliseconds,"Milliseconds" -join " "}}
 	}
 
-Update-Office -FilePath $UpdateRoot
+Update-Office -FilePath $UpdateRoot -GridView
 
 	#Write-Host "`n"
 	#Read-Host "Press any key to exit..."
