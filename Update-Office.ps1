@@ -409,7 +409,7 @@
 		} | ft @{n="Total installation time`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t";e={$_.Hours,"Hours",$_.Minutes,"Minutes",$_.Seconds,"Seconds",$_.Milliseconds,"Milliseconds" -join " "}}
 	}
 
-Update-Office -FilePath $UpdateRoot -GridView
+Update-Office -FilePath $UpdateRoot
 
 	#Write-Host "`n"
 	#Read-Host "Press any key to exit..."
