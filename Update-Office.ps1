@@ -149,10 +149,10 @@
 			$CheckPatchCode = Check-Registry
 			
 			$MSPArguments = @(
-				"/p"
-				"""$MSPFile"""
-				"/qn"
-				"REBOOT=ReallySuppress"
+				"/p",
+				"""$MSPFile""",
+				"/qn",
+				"REBOOT=ReallySuppress",
 				"MSIRESTARTMANAGERCONTROL=Disable"
 			)
 
