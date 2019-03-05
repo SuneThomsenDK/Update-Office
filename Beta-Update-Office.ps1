@@ -224,10 +224,11 @@
 		}
 
 		#===============================================================================
-		#	Check if Update Root Exists
+		#	Check That Update Root Exists
 		#===============================================================================
 		if (!(Test-Path -Path $UpdateRoot)) {
-			Write-Host "Warning: Cannot find $UpdateRoot because it does not exist! Please verify that the path is correct and try again." -foregroundcolor "Yellow"
+			$PSCommandPath = $PSCommandPath.Split("\")[2]
+			Write-Host "$($PSCommandPath): Cannot find $UpdateRoot because it does not exist! Please verify that the path is correct and try again." -foregroundcolor "Yellow"
 			Exit
 		}
 
@@ -391,7 +392,7 @@
 		#	Start Logging
 		#===============================================================================
 		Write-Log -Message "===============================================================================" -Type Information -LogFile $LogPath
-		Write-Log -Message "- Start Logging" -Type Information -LogFile $LogPath
+		Write-Log -Message "- Start-Logging" -Type Information -LogFile $LogPath
 		Write-Log -Message " " -Type Information -LogFile $LogPath
 		Write-Log -Message "- Username: $Env:USERNAME" -Type Information -LogFile $LogPath
 		Write-Log -Message "- Computername: $env:COMPUTERNAME" -Type Information -LogFile $LogPath
@@ -458,55 +459,40 @@
 		if (($GridView.IsPresent)) {$OfficeUpdates | Out-GridView -Title "Available Office Updates"}
 
 		#===============================================================================
-		#	Update Office
+		#	Installing Microsoft Office Updates
 		#===============================================================================
 		Write-Host "`n"
 		Write-Host "===============================================================================" -ForegroundColor DarkGray
-		Write-Host "Installing Microsoft Office 2016 Updates"
+		Write-Host "Installing Microsoft Office Updates"
 		Write-Host "===============================================================================" -ForegroundColor DarkGray
 		Write-Log -Message " " -Type Information -LogFile $LogPath
 		Write-Log -Message "===============================================================================" -Type Information -LogFile $LogPath
-		Write-Log -Message "Installing Microsoft Office 2016 Updates" -Type Information -LogFile $LogPath
+		Write-Log -Message "Installing Microsoft Office Updates" -Type Information -LogFile $LogPath
 		Write-Log -Message "===============================================================================" -Type Information -LogFile $LogPath
 
 		ForEach ($Update in $OfficeUpdates) {
 			if (($Update.BaseName -in $OfficeArrayList)) {Install-MSPUpdate -MSPFile "$($Update.FullName)"}
 		}
 
-		Write-Host "`n"
-		Write-Host "===============================================================================" -ForegroundColor DarkGray
-		Write-Host "Installing Microsoft Office 2016 Language Interface Pack Updates"
-		Write-Host "===============================================================================" -ForegroundColor DarkGray
-		Write-Log -Message " " -Type Information -LogFile $LogPath
-		Write-Log -Message "===============================================================================" -Type Information -LogFile $LogPath
-		Write-Log -Message "Installing Microsoft Office 2016 Language Interface Pack Updates" -Type Information -LogFile $LogPath
-		Write-Log -Message "===============================================================================" -Type Information -LogFile $LogPath
+		#===============================================================================
+		#	Installing Microsoft Office Language Interface Pack Updates
+		#===============================================================================
 
 		ForEach ($Update in $OfficeUpdates) {
 			if (($Update.BaseName -in $OfficeLIPArrayList)) {Install-MSPUpdate -MSPFile "$($Update.FullName)"}
 		}
 
-		Write-Host "`n"
-		Write-Host "===============================================================================" -ForegroundColor DarkGray
-		Write-Host "Installing Microsoft Office 2016 Language Pack Updates"
-		Write-Host "===============================================================================" -ForegroundColor DarkGray
-		Write-Log -Message " " -Type Information -LogFile $LogPath
-		Write-Log -Message "===============================================================================" -Type Information -LogFile $LogPath
-		Write-Log -Message "Installing Microsoft Office 2016 Language Pack Updates" -Type Information -LogFile $LogPath
-		Write-Log -Message "===============================================================================" -Type Information -LogFile $LogPath
+		#===============================================================================
+		#	Installing Microsoft Office Language Pack Updates
+		#===============================================================================
 
 		ForEach ($Update in $OfficeUpdates) {
 			if (($Update.BaseName -in $OfficeLPArrayList)) {Install-MSPUpdate -MSPFile "$($Update.FullName)"}
 		}
 
-		Write-Host "`n"
-		Write-Host "===============================================================================" -ForegroundColor DarkGray
-		Write-Host "Installing Microsoft Office 2016 Proofing Tools Kit Updates"
-		Write-Host "===============================================================================" -ForegroundColor DarkGray
-		Write-Log -Message " " -Type Information -LogFile $LogPath
-		Write-Log -Message "===============================================================================" -Type Information -LogFile $LogPath
-		Write-Log -Message "Installing Microsoft Office 2016 Proofing Tools Kit Updates" -Type Information -LogFile $LogPath
-		Write-Log -Message "===============================================================================" -Type Information -LogFile $LogPath
+		#===============================================================================
+		#	Installing Microsoft Office Proofing Tools Kit Updates
+		#===============================================================================
 
 		ForEach ($Update in $OfficeUpdates) {
 			if (($Update.BaseName -in $OfficePKArrayList)) {Install-MSPUpdate -MSPFile "$($Update.FullName)"}
@@ -532,6 +518,6 @@
 		#	End Logging
 		#===============================================================================
 		Write-Log -Message " " -Type Information -LogFile $LogPath
-		Write-Log -Message "- End Logging" -Type Information -LogFile $LogPath
+		Write-Log -Message "- End-Logging" -Type Information -LogFile $LogPath
 		Write-Log -Message "===============================================================================" -Type Information -LogFile $LogPath
 	} | ft @{n="Total installation time`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t`t";e={$_.Hours,"Hours",$_.Minutes,"Minutes",$_.Seconds,"Seconds",$_.Milliseconds,"Milliseconds" -join " "}}
