@@ -84,17 +84,17 @@
 			$WindowsInstaller = New-Object -ComObject WindowsInstaller.Installer
 			$MSPDatabase = $WindowsInstaller.GetType().InvokeMember("OpenDatabase", "InvokeMethod", $Null, $WindowsInstaller, @($MSPFile.FullName, 32))
 			$MSPQuery = "SELECT Value FROM MsiPatchMetadata WHERE Property = '$($Property)'"
-			$MSPView = $MSPDatabase.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $MSPDatabase, ($MSPQuery))
-			$MSPView.GetType().InvokeMember("Execute", "InvokeMethod", $null, $MSPView, $null)
-			$MSPRecord = $MSPView.GetType().InvokeMember("Fetch", "InvokeMethod", $null, $MSPView, $null)
-			$MSPValue = $MSPRecord.GetType().InvokeMember("StringData", "GetProperty", $null, $MSPRecord, 1)
+			$MSPView = $MSPDatabase.GetType().InvokeMember("OpenView", "InvokeMethod", $Null, $MSPDatabase, ($MSPQuery))
+			$MSPView.GetType().InvokeMember("Execute", "InvokeMethod", $Null, $MSPView, $Null)
+			$MSPRecord = $MSPView.GetType().InvokeMember("Fetch", "InvokeMethod", $Null, $MSPView, $Null)
+			$MSPValue = $MSPRecord.GetType().InvokeMember("StringData", "GetProperty", $Null, $MSPRecord, 1)
 			Return $MSPValue
 		}
 		Catch {
-			Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
+			Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -ForegroundColor "Yellow"
 			Write-Log -Message "Sune has created a awesome script, but something went wrong!" -Type Error -LogFile $LogPath
 			Write-Log -Message "$_.Exception.Message" -Type Error -LogFile $LogPath
-			Return $NULL
+			Return $Null
 		}
 	}
 
@@ -114,10 +114,10 @@
 			Return $MSPPatchCode
 		}
 		Catch {
-			Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
+			Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -ForegroundColor "Yellow"
 			Write-Log -Message "Sune has created a awesome script, but something went wrong!" -Type Error -LogFile $LogPath
 			Write-Log -Message "$_.Exception.Message" -Type Error -LogFile $LogPath
-			Return $NULL
+			Return $Null
 		}
 	}
 
@@ -161,7 +161,7 @@
 			Return $CheckPatchCode.DisplayName
 		}
 		Catch {
-			Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
+			Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -ForegroundColor "Yellow"
 			Write-Log -Message "Sune has created a awesome script, but something went wrong!" -Type Error -LogFile $LogPath
 			Write-Log -Message "$_.Exception.Message" -Type Error -LogFile $LogPath
 			Return $Null
@@ -192,16 +192,16 @@
 			)
 
 			if (!($CheckPatchCode)) {
-				$MSPInstall = Start-Process $process -ArgumentList $MSPArguments -PassThru -Wait
+				$MSPInstall = Start-Process $Process -ArgumentList $MSPArguments -PassThru -Wait
 				$MSPInstall.WaitForExit()
 				if (($MSPInstall.ExitCode -eq 0) -or ($MSPInstall.ExitCode -eq 3010)){
 					$Script:CountInstall++
-					Write-Host "Installing: $DisplayName ($($Update.BaseName))" -foregroundcolor "Green"
+					Write-Host "Installing: $DisplayName ($($Update.BaseName))" -ForegroundColor "Green"
 					Write-Log -Message "Installing $DisplayName ($($Update.BaseName))" -Type Information -LogFile $LogPath
 				}
 				else {
 					$Script:CountNotInstalled++
-					Write-Host "Attention: $DisplayName ($($Update.BaseName)) were not installed" -foregroundcolor "Cyan"
+					Write-Host "Attention: $DisplayName ($($Update.BaseName)) were not installed" -ForegroundColor "Cyan"
 					Write-Host "Possible cause: The program to be updated might not be installed, or the patch may update a different version of the program."
 					Write-Log -Message "$DisplayName ($($Update.BaseName)) were not installed" -Type Warning -LogFile $LogPath
 					Write-Log -Message "Possible cause: The program to be updated might not be installed, or the patch may update a different version of the program." -Type Information -LogFile $LogPath
@@ -209,26 +209,26 @@
 			}
 			else {
 				$Script:CountNotInstalled++
-				Write-Host "Attention: $DisplayName ($($Update.BaseName)) is already installed" -foregroundcolor "Cyan"
+				Write-Host "Attention: $DisplayName ($($Update.BaseName)) is already installed" -ForegroundColor "Cyan"
 				Write-Log -Message "$DisplayName ($($Update.BaseName)) is already installed" -Type Information -LogFile $LogPath
 			}
 		}
 		Catch {
-			Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
+			Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -ForegroundColor "Yellow"
 			Write-Log -Message "Sune has created a awesome script, but something went wrong!" -Type Error -LogFile $LogPath
 			Write-Log -Message "$_.Exception.Message" -Type Error -LogFile $LogPath
-			Return $NULL
+			Return $Null
 		}
 	}
 
 	Measure-Command -Expression {
-		
+
 		#===============================================================================
 		#	Check That Update Root Exists
 		#===============================================================================
 		if (!(Test-Path -Path $UpdateRoot)) {
 			$PSCommandPath = $PSCommandPath.Split("\")[2]
-			Write-Host "$($PSCommandPath): Cannot find $UpdateRoot because it does not exist! Please verify that the path is correct and try again." -foregroundcolor "Yellow"
+			Write-Host "$($PSCommandPath): Cannot find $UpdateRoot because it does not exist! Please verify that the path is correct and try again." -ForegroundColor "Yellow"
 			Exit
 		}
 
@@ -413,9 +413,9 @@
 			#	Format CreationDateUTC
 			#===============================================================================
 			$CreationDateUTC = $CreationDateUTC[1]
-			$CreationDateUTC = [DateTime]::ParseExact("$CreationDateUTC", "MM/dd/yy HH:mm", $null)
-			$CreationDateUTC = Get-Date $CreationDateUTC -f "$RegionFormat"
-			$CreationDateUTC = [DateTime]::ParseExact($CreationDateUTC,"$RegionFormat",$null)
+			$CreationDateUTC = [DateTime]::ParseExact($CreationDateUTC, "MM/dd/yy HH:mm", $Null)
+			$CreationDateUTC = Get-Date $CreationDateUTC -f $RegionFormat
+			$CreationDateUTC = [DateTime]::ParseExact($CreationDateUTC, $RegionFormat, $Null)
 
 			#===============================================================================
 			#	Add MSP Properties to Updates
@@ -438,16 +438,16 @@
 		#	Installing Microsoft Office Updates
 		#===============================================================================
 		Write-Host "`n"
-		Write-Host "===============================================================================" -ForegroundColor DarkGray
+		Write-Host "===============================================================================" -ForegroundColor "DarkGray"
 		Write-Host "Installing Microsoft Office Updates"
-		Write-Host "===============================================================================" -ForegroundColor DarkGray
+		Write-Host "===============================================================================" -ForegroundColor "DarkGray"
 		Write-Log -Message " " -Type Information -LogFile $LogPath
 		Write-Log -Message "===============================================================================" -Type Information -LogFile $LogPath
 		Write-Log -Message "Installing Microsoft Office Updates" -Type Information -LogFile $LogPath
 		Write-Log -Message "===============================================================================" -Type Information -LogFile $LogPath
 
 		ForEach ($Update in $OfficeUpdates) {
-			if (($Update.BaseName -in $OfficeArrayList)) {Install-MSPUpdate -MSPFile "$($Update.FullName)"}
+			if (($Update.BaseName -in $OfficeArrayList)) {Install-MSPUpdate -MSPFile $($Update.FullName)}
 		}
 
 		#===============================================================================
@@ -455,7 +455,7 @@
 		#===============================================================================
 
 		ForEach ($Update in $OfficeUpdates) {
-			if (($Update.BaseName -in $OfficeLIPArrayList)) {Install-MSPUpdate -MSPFile "$($Update.FullName)"}
+			if (($Update.BaseName -in $OfficeLIPArrayList)) {Install-MSPUpdate -MSPFile $($Update.FullName)}
 		}
 
 		#===============================================================================
@@ -463,7 +463,7 @@
 		#===============================================================================
 
 		ForEach ($Update in $OfficeUpdates) {
-			if (($Update.BaseName -in $OfficeLPArrayList)) {Install-MSPUpdate -MSPFile "$($Update.FullName)"}
+			if (($Update.BaseName -in $OfficeLPArrayList)) {Install-MSPUpdate -MSPFile $($Update.FullName)}
 		}
 
 		#===============================================================================
@@ -471,16 +471,16 @@
 		#===============================================================================
 
 		ForEach ($Update in $OfficeUpdates) {
-			if (($Update.BaseName -in $OfficePKArrayList)) {Install-MSPUpdate -MSPFile "$($Update.FullName)"}
+			if (($Update.BaseName -in $OfficePKArrayList)) {Install-MSPUpdate -MSPFile $($Update.FullName)}
 		}
 
 		#===============================================================================
 		#	Installation Summary
 		#===============================================================================
 		Write-Host "`n"
-		Write-Host "===============================================================================" -ForegroundColor DarkGray
+		Write-Host "===============================================================================" -ForegroundColor "DarkGray"
 		Write-Host "Installation Summary"
-		Write-Host "===============================================================================" -ForegroundColor DarkGray
+		Write-Host "===============================================================================" -ForegroundColor "DarkGray"
 		Write-Log -Message " " -Type Information -LogFile $LogPath
 		Write-Log -Message "===============================================================================" -Type Information -LogFile $LogPath
 		Write-Log -Message "Installation Summary" -Type Information -LogFile $LogPath
