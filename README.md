@@ -19,5 +19,3 @@ Shows all available Office updates in GridView
 Changes the default path to the path specified and shows all available Office updates in GridView
 
 **Supported Versions:** Microsoft Office Professional Plus 2010, 2013 and 2016 (it should also work with 2019, but it's not been tested yet!)
-
-**Attention:** Very few region format are not supported! In order for the script to work, please change region format to something else eg. English (United States)
