@@ -52,177 +52,177 @@
 		[Switch]$GridView
 	)
 
-	Measure-Command -Expression {
+	Function Write-Log {
+		[CmdletBinding()]
+		Param (
+			[Parameter(Mandatory=$false)][String]$LogFile,
+			[Parameter(Mandatory=$true)][String]$Message,
+			[Parameter(Mandatory=$false)][ValidateSet("Information","Warning","Error")][String]$Type = "Information"
+		)
 
-		Function Write-Log {
-			[CmdletBinding()]
-			Param (
-				[Parameter(Mandatory=$false)][String]$LogFile,
-				[Parameter(Mandatory=$true)][String]$Message,
-				[Parameter(Mandatory=$false)][ValidateSet("Information","Warning","Error")][String]$Type = "Information"
-			)
+		$LogTime = (Get-Date).toString("yyyy-MM-dd HH:mm:ss")
+		$LogLine = "$LogTime $($Type): $Message"
 
-			$LogTime = (Get-Date).toString("$DateFormat $TimeFormat")
-			$LogLine = "$LogTime $($Type): $Message"
-
-			if (($LogFile)) {
-				Add-Content $LogFile -Value $LogLine
-			}
-			else {
-				Write-Output $LogLine
-			}
+		if (($LogFile)) {
+			Add-Content $LogFile -Value $LogLine
 		}
-
-		Function Get-MSPInfo {
-			[CmdletBinding()]
-			Param (
-				[Parameter(Mandatory = $true)][System.IO.FileInfo][String]$MSPFile,
-				[Parameter(Mandatory = $true)][ValidateSet("Classification", "DisplayName", "KBArticle Number", "TargetProductName", "CreationTimeUTC")][String]$Property
-			)
-			Try {
-				#===============================================================================
-				#	Get MSP Information
-				#===============================================================================
-				$WindowsInstaller = New-Object -ComObject WindowsInstaller.Installer
-				$MSPDatabase = $WindowsInstaller.GetType().InvokeMember("OpenDatabase", "InvokeMethod", $Null, $WindowsInstaller, @($MSPFile.FullName, 32))
-				$MSPQuery = "SELECT Value FROM MsiPatchMetadata WHERE Property = '$($Property)'"
-				$MSPView = $MSPDatabase.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $MSPDatabase, ($MSPQuery))
-				$MSPView.GetType().InvokeMember("Execute", "InvokeMethod", $null, $MSPView, $null)
-				$MSPRecord = $MSPView.GetType().InvokeMember("Fetch", "InvokeMethod", $null, $MSPView, $null)
-				$MSPValue = $MSPRecord.GetType().InvokeMember("StringData", "GetProperty", $null, $MSPRecord, 1)
-				Return $MSPValue
-			}
-			Catch {
-				Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
-				Write-Log -Message "Sune has created a awesome script, but something went wrong!" -Type Error -LogFile $LogPath
-				Write-Log -Message "$_.Exception.Message" -Type Error -LogFile $LogPath
-				Return $NULL
-			}
+		else {
+			Write-Output $LogLine
 		}
+	}
 
-		Function Get-MSPPatchCode {
-			[CmdletBinding()]
-			Param (
-				[Parameter(Mandatory = $true)][System.IO.FileInfo][String]$MSPFile
-			)
-			Try {
-				#===============================================================================
-				#	Get MSP PatchCode
-				#===============================================================================
-				$WindowsInstaller = New-Object -ComObject WindowsInstaller.Installer
-				$MSPDatabase = $WindowsInstaller.GetType().InvokeMember("OpenDatabase", "InvokeMethod", $Null, $WindowsInstaller, $($MSPFile.FullName, 32))
-				$MSPSummary = $MSPDatabase.GetType().InvokeMember("SummaryInformation", "GetProperty", $Null, $MSPDatabase, $Null)
-				[String]$MSPPatchCode = $MSPSummary.GetType().InvokeMember("Property", "GetProperty", $Null, $MSPSummary, 9)
-				Return $MSPPatchCode
-			}
-			Catch {
-				Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
-				Write-Log -Message "Sune has created a awesome script, but something went wrong!" -Type Error -LogFile $LogPath
-				Write-Log -Message "$_.Exception.Message" -Type Error -LogFile $LogPath
-				Return $NULL
-			}
+	Function Get-MSPInfo {
+		[CmdletBinding()]
+		Param (
+			[Parameter(Mandatory = $true)][System.IO.FileInfo][String]$MSPFile,
+			[Parameter(Mandatory = $true)][ValidateSet("Classification", "DisplayName", "KBArticle Number", "TargetProductName", "CreationTimeUTC")][String]$Property
+		)
+		Try {
+			#===============================================================================
+			#	Get MSP Information
+			#===============================================================================
+			$WindowsInstaller = New-Object -ComObject WindowsInstaller.Installer
+			$MSPDatabase = $WindowsInstaller.GetType().InvokeMember("OpenDatabase", "InvokeMethod", $Null, $WindowsInstaller, @($MSPFile.FullName, 32))
+			$MSPQuery = "SELECT Value FROM MsiPatchMetadata WHERE Property = '$($Property)'"
+			$MSPView = $MSPDatabase.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $MSPDatabase, ($MSPQuery))
+			$MSPView.GetType().InvokeMember("Execute", "InvokeMethod", $null, $MSPView, $null)
+			$MSPRecord = $MSPView.GetType().InvokeMember("Fetch", "InvokeMethod", $null, $MSPView, $null)
+			$MSPValue = $MSPRecord.GetType().InvokeMember("StringData", "GetProperty", $null, $MSPRecord, 1)
+			Return $MSPValue
 		}
+		Catch {
+			Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
+			Write-Log -Message "Sune has created a awesome script, but something went wrong!" -Type Error -LogFile $LogPath
+			Write-Log -Message "$_.Exception.Message" -Type Error -LogFile $LogPath
+			Return $NULL
+		}
+	}
 
-		Function Check-Registry {
-			Try {
-				#===============================================================================
-				#	Check PatchCode in Registry
-				#===============================================================================
-				$Office2010 = "HKLM:\SOFTWARE\Microsoft\Office\14.0\Outlook"
-				$Office2013 = "HKLM:\SOFTWARE\Microsoft\Office\15.0\Outlook"
-				$Office2016 = "HKLM:\SOFTWARE\Microsoft\Office\16.0\Outlook"
-				$RegWin = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
-				$RegWoW = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
-				$IsOffice = $Null
+	Function Get-MSPPatchCode {
+		[CmdletBinding()]
+		Param (
+			[Parameter(Mandatory = $true)][System.IO.FileInfo][String]$MSPFile
+		)
+		Try {
+			#===============================================================================
+			#	Get MSP PatchCode
+			#===============================================================================
+			$WindowsInstaller = New-Object -ComObject WindowsInstaller.Installer
+			$MSPDatabase = $WindowsInstaller.GetType().InvokeMember("OpenDatabase", "InvokeMethod", $Null, $WindowsInstaller, $($MSPFile.FullName, 32))
+			$MSPSummary = $MSPDatabase.GetType().InvokeMember("SummaryInformation", "GetProperty", $Null, $MSPDatabase, $Null)
+			[String]$MSPPatchCode = $MSPSummary.GetType().InvokeMember("Property", "GetProperty", $Null, $MSPSummary, 9)
+			Return $MSPPatchCode
+		}
+		Catch {
+			Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
+			Write-Log -Message "Sune has created a awesome script, but something went wrong!" -Type Error -LogFile $LogPath
+			Write-Log -Message "$_.Exception.Message" -Type Error -LogFile $LogPath
+			Return $NULL
+		}
+	}
 
-				if ((Test-Path $Office2010)) {$IsOffice = Get-ItemProperty -Path $Office2010 -name Bitness -ErrorAction SilentlyContinue}
-				if ((Test-Path $Office2013)) {$IsOffice = Get-ItemProperty -Path $Office2013 -name Bitness -ErrorAction SilentlyContinue}
-				if ((Test-Path $Office2016)) {$IsOffice = Get-ItemProperty -Path $Office2016 -name Bitness -ErrorAction SilentlyContinue}
+	Function Check-Registry {
+		Try {
+			#===============================================================================
+			#	Check PatchCode in Registry
+			#===============================================================================
+			$Office2010 = "HKLM:\SOFTWARE\Microsoft\Office\14.0\Outlook"
+			$Office2013 = "HKLM:\SOFTWARE\Microsoft\Office\15.0\Outlook"
+			$Office2016 = "HKLM:\SOFTWARE\Microsoft\Office\16.0\Outlook"
+			$RegWin = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
+			$RegWoW = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+			$IsOffice = $Null
 
-				if (([System.Environment]::Is64BitOperatingSystem)) {
-					if (($IsOffice.Bitness -eq "x86")) {
-						$CheckPatchCode = Get-ItemProperty -Path $RegWoW |
-						Where-Object {$_.PSChildName -like "*$PatchCode*" -or $_.UninstallString -like "*$PatchCode*"} |
-						Select-Object -Property PSChildName, DisplayName, UninstallString |
-						Sort-Object -Property DisplayName -Unique
-					}
-					else {
-						$CheckPatchCode = Get-ItemProperty -Path $RegWin |
-						Where-Object {$_.PSChildName -like "*$PatchCode*" -or $_.UninstallString -like "*$PatchCode*"} |
-						Select-Object -Property PSChildName, DisplayName, UninstallString |
-						Sort-Object -Property DisplayName -Unique
-					}
+			if ((Test-Path $Office2010)) {$IsOffice = Get-ItemProperty -Path $Office2010 -name Bitness -ErrorAction SilentlyContinue}
+			if ((Test-Path $Office2013)) {$IsOffice = Get-ItemProperty -Path $Office2013 -name Bitness -ErrorAction SilentlyContinue}
+			if ((Test-Path $Office2016)) {$IsOffice = Get-ItemProperty -Path $Office2016 -name Bitness -ErrorAction SilentlyContinue}
+
+			if (([System.Environment]::Is64BitOperatingSystem)) {
+				if (($IsOffice.Bitness -eq "x86")) {
+					$CheckPatchCode = Get-ItemProperty -Path $RegWoW |
+					Where-Object {$_.PSChildName -like "*$PatchCode*" -or $_.UninstallString -like "*$PatchCode*"} |
+					Select-Object -Property PSChildName, DisplayName, UninstallString |
+					Sort-Object -Property DisplayName -Unique
 				}
-
-				if (!([System.Environment]::Is64BitOperatingSystem)) {
+				else {
 					$CheckPatchCode = Get-ItemProperty -Path $RegWin |
 					Where-Object {$_.PSChildName -like "*$PatchCode*" -or $_.UninstallString -like "*$PatchCode*"} |
 					Select-Object -Property PSChildName, DisplayName, UninstallString |
 					Sort-Object -Property DisplayName -Unique
 				}
-				Return $CheckPatchCode.DisplayName
 			}
-			Catch {
-				Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
-				Write-Log -Message "Sune has created a awesome script, but something went wrong!" -Type Error -LogFile $LogPath
-				Write-Log -Message "$_.Exception.Message" -Type Error -LogFile $LogPath
-				Return $Null
+
+			if (!([System.Environment]::Is64BitOperatingSystem)) {
+				$CheckPatchCode = Get-ItemProperty -Path $RegWin |
+				Where-Object {$_.PSChildName -like "*$PatchCode*" -or $_.UninstallString -like "*$PatchCode*"} |
+				Select-Object -Property PSChildName, DisplayName, UninstallString |
+				Sort-Object -Property DisplayName -Unique
 			}
+			Return $CheckPatchCode.DisplayName
 		}
+		Catch {
+			Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
+			Write-Log -Message "Sune has created a awesome script, but something went wrong!" -Type Error -LogFile $LogPath
+			Write-Log -Message "$_.Exception.Message" -Type Error -LogFile $LogPath
+			Return $Null
+		}
+	}
 
-		Function Install-MSPUpdate {
-			[CmdletBinding()]
-			Param (
-				[Parameter(Mandatory = $true)][System.IO.FileInfo][String]$MSPFile
+	Function Install-MSPUpdate {
+		[CmdletBinding()]
+		Param (
+			[Parameter(Mandatory = $true)][System.IO.FileInfo][String]$MSPFile
+		)
+		Try {
+			#===============================================================================
+			#	Install MSP Update
+			#===============================================================================
+			$KBNumber = $Update.KBNumber
+			$DisplayName = $Update.DisplayName
+			$PatchCode = $Update.PatchCode
+			$Process = "msiexec.exe"
+			$CheckPatchCode = Check-Registry
+
+			$MSPArguments = @(
+				"/p",
+				"""$MSPFile""",
+				"/qn",
+				"REBOOT=ReallySuppress",
+				"MSIRESTARTMANAGERCONTROL=Disable"
 			)
-			Try {
-				#===============================================================================
-				#	Install MSP Update
-				#===============================================================================
-				$KBNumber = $Update.KBNumber
-				$DisplayName = $Update.DisplayName
-				$PatchCode = $Update.PatchCode
-				$Process = "msiexec.exe"
-				$CheckPatchCode = Check-Registry
 
-				$MSPArguments = @(
-					"/p",
-					"""$MSPFile""",
-					"/qn",
-					"REBOOT=ReallySuppress",
-					"MSIRESTARTMANAGERCONTROL=Disable"
-				)
-
-				if (!($CheckPatchCode)) {
-					$MSPInstall = Start-Process $process -ArgumentList $MSPArguments -PassThru -Wait
-					$MSPInstall.WaitForExit()
-					if (($MSPInstall.ExitCode -eq 0) -or ($MSPInstall.ExitCode -eq 3010)){
-						$Script:CountInstall++
-						Write-Host "Installing: $DisplayName ($($Update.BaseName))" -foregroundcolor "Green"
-						Write-Log -Message "Installing $DisplayName ($($Update.BaseName))" -Type Information -LogFile $LogPath
-					}
-					else {
-						$Script:CountNotInstalled++
-						Write-Host "Attention: $DisplayName ($($Update.BaseName)) were not installed" -foregroundcolor "Cyan"
-						Write-Host "Possible cause: The program to be updated might not be installed, or the patch may update a different version of the program."
-						Write-Log -Message "$DisplayName ($($Update.BaseName)) were not installed" -Type Warning -LogFile $LogPath
-						Write-Log -Message "Possible cause: The program to be updated might not be installed, or the patch may update a different version of the program." -Type Information -LogFile $LogPath
-					}
+			if (!($CheckPatchCode)) {
+				$MSPInstall = Start-Process $process -ArgumentList $MSPArguments -PassThru -Wait
+				$MSPInstall.WaitForExit()
+				if (($MSPInstall.ExitCode -eq 0) -or ($MSPInstall.ExitCode -eq 3010)){
+					$Script:CountInstall++
+					Write-Host "Installing: $DisplayName ($($Update.BaseName))" -foregroundcolor "Green"
+					Write-Log -Message "Installing $DisplayName ($($Update.BaseName))" -Type Information -LogFile $LogPath
 				}
 				else {
 					$Script:CountNotInstalled++
-					Write-Host "Attention: $DisplayName ($($Update.BaseName)) is already installed" -foregroundcolor "Cyan"
-					Write-Log -Message "$DisplayName ($($Update.BaseName)) is already installed" -Type Information -LogFile $LogPath
+					Write-Host "Attention: $DisplayName ($($Update.BaseName)) were not installed" -foregroundcolor "Cyan"
+					Write-Host "Possible cause: The program to be updated might not be installed, or the patch may update a different version of the program."
+					Write-Log -Message "$DisplayName ($($Update.BaseName)) were not installed" -Type Warning -LogFile $LogPath
+					Write-Log -Message "Possible cause: The program to be updated might not be installed, or the patch may update a different version of the program." -Type Information -LogFile $LogPath
 				}
 			}
-			Catch {
-				Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
-				Write-Log -Message "Sune has created a awesome script, but something went wrong!" -Type Error -LogFile $LogPath
-				Write-Log -Message "$_.Exception.Message" -Type Error -LogFile $LogPath
-				Return $NULL
+			else {
+				$Script:CountNotInstalled++
+				Write-Host "Attention: $DisplayName ($($Update.BaseName)) is already installed" -foregroundcolor "Cyan"
+				Write-Log -Message "$DisplayName ($($Update.BaseName)) is already installed" -Type Information -LogFile $LogPath
 			}
 		}
+		Catch {
+			Write-Host "Warning: Sune has created a awesome script, but something went wrong!" -foregroundcolor "Yellow"
+			Write-Log -Message "Sune has created a awesome script, but something went wrong!" -Type Error -LogFile $LogPath
+			Write-Log -Message "$_.Exception.Message" -Type Error -LogFile $LogPath
+			Return $NULL
+		}
+	}
 
+	Measure-Command -Expression {
+		
 		#===============================================================================
 		#	Check That Update Root Exists
 		#===============================================================================
@@ -236,13 +236,11 @@
 		#	Set Variables
 		#===============================================================================
 		$LocalCulture = Get-Culture
-		$LanguageCode = $LocalCulture.LCID
-		$DateFormat = [System.Globalization.CultureInfo]::GetCultureInfo($LanguageCode).DateTimeFormat.ShortDatePattern
-		$TimeFormat = [System.Globalization.CultureInfo]::GetCultureInfo($LanguageCode).DateTimeFormat.LongTimePattern
+		$RegionFormat = [System.Globalization.CultureInfo]::GetCultureInfo($LocalCulture.LCID).DateTimeFormat.FullDateTimePattern
 
 		$OfficeUpdates = Get-ChildItem $UpdateRoot -Recurse -File -Include *.msp
-		$LogFileTime = (Get-Date -f "yyyy-MM-dd-HHmmss")
-		$LogFile = "$($LogFileTime)-Update-Office.log"
+		$LogFileTime = (Get-Date).toString("yyyy-MM-dd-HHmmss")
+		$LogFile = "$($LogFileTime)_Update-Office.log"
 		$LogPath = Join-Path "$LogRoot" "$LogFile"
 
 		$Script:CountInstall = 0
@@ -414,33 +412,10 @@
 			#===============================================================================
 			#	Format CreationDateUTC
 			#===============================================================================
-			$SplitDate = ($CreationDateUTC[1] -split " ")[0]
-			$SplitTime = ($CreationDateUTC[1] -split " ")[1]
-
-			if (($DateFormat -like "D*")) {
-				$CreationDateUTC = $SplitDate
-				$CreationDateUTC = $CreationDateUTC.Split("/")
-				$CreationDateUTC = "{0}/{1}/{2}" -f $CreationDateUTC[1],$CreationDateUTC[0],$CreationDateUTC[2]
-				$CreationDateUTC = $CreationDateUTC+"`t"+$SplitTime
-				$CreationDateUTC = Get-Date $CreationDateUTC -f "$DateFormat $TimeFormat"
-				$CreationDateUTC = ([DateTime]::ParseExact($CreationDateUTC,"$DateFormat $TimeFormat",[Globalization.CultureInfo]::InvariantCulture))
-			}
-
-			if (($DateFormat -like "M*")) {
-				$CreationDateUTC = $SplitDate
-				$CreationDateUTC = $CreationDateUTC+"`t"+$SplitTime
-				$CreationDateUTC = Get-Date $CreationDateUTC -f "$DateFormat $TimeFormat"
-				$CreationDateUTC = ([DateTime]::ParseExact($CreationDateUTC,"$DateFormat $TimeFormat",[Globalization.CultureInfo]::InvariantCulture))
-			}
-
-			if (($DateFormat -like "Y*")) {
-				$CreationDateUTC = $SplitDate
-				$CreationDateUTC = $CreationDateUTC.Split("/")
-				$CreationDateUTC = "{0}/{1}/{2}" -f $CreationDateUTC[2],$CreationDateUTC[0],$CreationDateUTC[1]
-				$CreationDateUTC = $CreationDateUTC+"`t"+$SplitTime
-				$CreationDateUTC = Get-Date $CreationDateUTC -f "$DateFormat $TimeFormat"
-				$CreationDateUTC = ([DateTime]::ParseExact($CreationDateUTC,"$DateFormat $TimeFormat",[Globalization.CultureInfo]::InvariantCulture))
-			}
+			$CreationDateUTC = $CreationDateUTC[1]
+			$CreationDateUTC = [DateTime]::ParseExact("$CreationDateUTC", "MM/dd/yy HH:mm", $null)
+			$CreationDateUTC = Get-Date $CreationDateUTC -f "$RegionFormat"
+			$CreationDateUTC = [DateTime]::ParseExact($CreationDateUTC,"$RegionFormat",$null)
 
 			#===============================================================================
 			#	Add MSP Properties to Updates
