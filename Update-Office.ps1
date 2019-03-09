@@ -40,6 +40,7 @@
 .LINK
 	https://github.com/SuneThomsenDK
 #>
+
 	#===============================================================================
 	#	Requirements
 	#===============================================================================
@@ -194,7 +195,7 @@
 			if (!($CheckPatchCode)) {
 				$MSPInstall = Start-Process $Process -ArgumentList $MSPArguments -PassThru -Wait
 				$MSPInstall.WaitForExit()
-				if (($MSPInstall.ExitCode -eq 0) -or ($MSPInstall.ExitCode -eq 3010)){
+				if (($MSPInstall.ExitCode -eq 0) -or ($MSPInstall.ExitCode -eq 3010)) {
 					$Script:CountInstall++
 					Write-Host "Installing: $DisplayName ($($Update.BaseName))" -ForegroundColor "Green"
 					Write-Log -Message "Installing $DisplayName ($($Update.BaseName))" -Type Information -LogFile $LogPath
