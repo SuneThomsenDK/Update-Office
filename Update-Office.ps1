@@ -4,7 +4,7 @@
 
 .DESCRIPTION
 	The purpose of this script is to install Office updates offline or during SCCM OS Deployment instead of WSUS, which takes forever to complete
-	This script reduced my SCCM OS Deployment time by 20-30 minutes depending on the hardware
+	This script reduced our SCCM OS Deployment time by 20-30 minutes depending on the hardware configuration
 
 .PARAMETER UpdateRoot
 	Changes the default path from "$PSScriptRoot\Updates\" to the path specified
