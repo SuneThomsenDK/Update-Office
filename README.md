@@ -1,6 +1,6 @@
 # Update-Office
 
-The purpose of this script is to install Office updates offline or during SCCM OS Deployment instead of WSUS, which takes forever to complete! This script reduced our SCCM OS Deployment time by 20-30 minutes depending on the hardware
+The purpose of this script is to install Office updates offline or during SCCM OS Deployment instead of WSUS, which takes forever to complete! This script reduced our SCCM OS Deployment time by 20-30 minutes depending on the hardware configuration
 
 **EXAMPLE 1:** .\Update-Office.ps1 -UpdateRoot "Add Custom Path Here"
 
