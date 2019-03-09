@@ -32,10 +32,10 @@
 	Changes the default path to the path specified and shows all available Office updates in GridView
 
 .NOTES
-	Version: 1.9.3.6
+	Version: 1.9.3.9
 	Author: Sune Thomsen
 	Creation date: 22-02-2019
-	Last modified date: 06-03-2019
+	Last modified date: 09-03-2019
 
 .LINK
 	https://github.com/SuneThomsenDK
