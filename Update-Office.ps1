@@ -255,9 +255,6 @@
 		$LogFile = "$($LogFileTime)_Update-Office.log"
 		$LogPath = Join-Path "$LogRoot" "$LogFile"
 
-		$Script:CountInstall = 0
-		$Script:CountNotInstalled = 0
-
 		$OfficeCorePath = "$PSScriptRoot\Arraylist_OfficeCore.txt"
 		$OfficeLIPPath = "$PSScriptRoot\Arraylist_OfficeLIP.txt"
 		$OfficeLPPath = "$PSScriptRoot\Arraylist_OfficeLP.txt"
@@ -269,6 +266,9 @@
 		if ((Test-Path -Path $OfficePKPath)) {$OfficePKArraylist = Get-content -Path $OfficePKPath}
 
 		$OfficeArraylist = $OfficeCoreArraylist + $OfficeLIPArraylist + $OfficeLPArraylist + $OfficePKArraylist
+
+		$Script:CountInstall = 0
+		$Script:CountNotInstalled = 0
 
 		#=========================================================================================
 		#	Create Log Folder
