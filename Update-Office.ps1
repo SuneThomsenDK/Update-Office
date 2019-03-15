@@ -250,10 +250,11 @@
 		$LocalCulture = Get-Culture
 		$RegionFormat = [System.Globalization.CultureInfo]::GetCultureInfo($LocalCulture.LCID).DateTimeFormat.FullDateTimePattern
 
-		$OfficeUpdates = Get-ChildItem $UpdateRoot -Recurse -File -Include *.msp
 		$LogFileTime = (Get-Date).toString("yyyy-MM-dd-HHmmss")
 		$LogFile = "$($LogFileTime)_Update-Office.log"
 		$LogPath = Join-Path "$LogRoot" "$LogFile"
+
+		$OfficeUpdates = Get-ChildItem $UpdateRoot -Recurse -File -Include *.msp
 
 		$OfficeCorePath = "$PSScriptRoot\Arraylist_OfficeCore.txt"
 		$OfficeLIPPath = "$PSScriptRoot\Arraylist_OfficeLIP.txt"
