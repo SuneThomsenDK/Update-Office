@@ -6,14 +6,14 @@ These scripts are not official supported by Microsoft. All scripts are provided 
 
 The purpose of this script is to install Office updates offline or during SCCM OS Deployment instead of WSUS, which takes forever to complete! This script reduced our SCCM OS Deployment time by 20-30 minutes depending on the hardware configuration
 
-If you are installing Language Packs, Language Interface Packs or Proofing Tools Kits, you have to install updates in a specific order and that's done by adding them to the following arraylists:
+If you are installing Language Packs, Language Interface Packs or Proofing Tools Kits, you have to install updates in a specific order and that's done by adding them to the following ArrayLists:
 
-	"Arraylist_OfficeCore.txt"
-	"Arraylist_OfficeLIP.txt"
-	"Arraylist_OfficeLP.txt"
-	"Arraylist_OfficePK.txt"
+	"ArrayList_OfficeCore.txt"
+	"ArrayList_OfficeLIP.txt"
+	"ArrayList_OfficeLP.txt"
+	"ArrayList_OfficePK.txt"
   
-If you do not install Language Packs, Language Interface Packs or Proofing Tools Kits, it´s best to leave these arraylist files empty or just delete them
+If you do not install Language Packs, Language Interface Packs or Proofing Tools Kits, it´s best to leave these ArrayList files empty or just delete them
 
 **EXAMPLE 1:** .\Update-Office.ps1 -UpdateRoot "Add Custom Path Here"
 
