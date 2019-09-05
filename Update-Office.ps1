@@ -7,14 +7,14 @@
 	This script reduced our SCCM OS Deployment time by 20-30 minutes depending on the hardware configuration
 
 	If you are installing Language Packs, Language Interface Packs or Proofing Tools Kits, you have to install updates in a specific order and
-	that's done by adding them to the following arraylists:
+	that's done by adding them to the following ArrayLists:
 
-	"Arraylist_OfficeCore.txt"
-	"Arraylist_OfficeLIP.txt"
-	"Arraylist_OfficeLP.txt"
-	"Arraylist_OfficePK.txt"
+	"ArrayList_OfficeCore.txt"
+	"ArrayList_OfficeLIP.txt"
+	"ArrayList_OfficeLP.txt"
+	"ArrayList_OfficePK.txt"
 
-	If you do not install Language Packs, Language Interface Packs or Proofing Tools Kits, it´s best to leave these arraylist files empty
+	If you do not install Language Packs, Language Interface Packs or Proofing Tools Kits, it´s best to leave these ArrayList files empty
 	or just delete them
 
 .PARAMETER UpdateRoot
@@ -256,17 +256,17 @@
 
 		$OfficeUpdates = Get-ChildItem $UpdateRoot -Recurse -File -Include *.msp
 
-		$OfficeCorePath = "$PSScriptRoot\Arraylist_OfficeCore.txt"
-		$OfficeLIPPath = "$PSScriptRoot\Arraylist_OfficeLIP.txt"
-		$OfficeLPPath = "$PSScriptRoot\Arraylist_OfficeLP.txt"
-		$OfficePKPath = "$PSScriptRoot\Arraylist_OfficePK.txt"
+		$OfficeCorePath = "$PSScriptRoot\ArrayList_OfficeCore.txt"
+		$OfficeLIPPath = "$PSScriptRoot\ArrayList_OfficeLIP.txt"
+		$OfficeLPPath = "$PSScriptRoot\ArrayList_OfficeLP.txt"
+		$OfficePKPath = "$PSScriptRoot\ArrayList_OfficePK.txt"
 
-		if ((Test-Path -Path $OfficeCorePath)) {$OfficeCoreArraylist = Get-content -Path $OfficeCorePath}
-		if ((Test-Path -Path $OfficeLIPPath)) {$OfficeLIPArraylist = Get-content -Path $OfficeLIPPath}
-		if ((Test-Path -Path $OfficeLPPath)) {$OfficeLPArraylist = Get-content -Path $OfficeLPPath}
-		if ((Test-Path -Path $OfficePKPath)) {$OfficePKArraylist = Get-content -Path $OfficePKPath}
+		if ((Test-Path -Path $OfficeCorePath)) {$OfficeCoreArrayList = Get-content -Path $OfficeCorePath}
+		if ((Test-Path -Path $OfficeLIPPath)) {$OfficeLIPArrayList = Get-content -Path $OfficeLIPPath}
+		if ((Test-Path -Path $OfficeLPPath)) {$OfficeLPArrayList = Get-content -Path $OfficeLPPath}
+		if ((Test-Path -Path $OfficePKPath)) {$OfficePKArrayList = Get-content -Path $OfficePKPath}
 
-		$OfficeArraylist = $OfficeCoreArraylist + $OfficeLIPArraylist + $OfficeLPArraylist + $OfficePKArraylist
+		$OfficeArrayList = $OfficeCoreArrayList + $OfficeLIPArrayList + $OfficeLPArrayList + $OfficePKArrayList
 
 		$Script:CountInstall = 0
 		$Script:CountNotInstalled = 0
@@ -335,38 +335,38 @@
 		Write-Log -Message "Installing Microsoft Office Updates" -Type Information -LogFile $LogPath
 		Write-Log -Message "=========================================================================================" -Type Information -LogFile $LogPath
 
-		if (($OfficeCoreArraylist -notlike $Null)) {Write-Host "Attention: Updates were found in Office Core arraylist and will be installed in correct order." -ForegroundColor "DarkGray"}
-		if (($OfficeLIPArraylist -notlike $Null)) {Write-Host "Attention: Updates were found in Office LIP arraylist and will be installed in correct order." -ForegroundColor "DarkGray"}
-		if (($OfficeLPArraylist -notlike $Null)) {Write-Host "Attention: Updates were found in Office LP arraylist and will be installed in correct order." -ForegroundColor "DarkGray"}
-		if (($OfficePKArraylist -notlike $Null)) {Write-Host "Attention: Updates were found in Office PK arraylist and will be installed in correct order." -ForegroundColor "DarkGray"}
-		if (($OfficeArraylist -notlike $Null)) {Write-Host "`n"}
+		if (($OfficeCoreArrayList -notlike $Null)) {Write-Host "Attention: Updates were found in Office Core ArrayList and will be installed in correct order." -ForegroundColor "DarkGray"}
+		if (($OfficeLIPArrayList -notlike $Null)) {Write-Host "Attention: Updates were found in Office LIP ArrayList and will be installed in correct order." -ForegroundColor "DarkGray"}
+		if (($OfficeLPArrayList -notlike $Null)) {Write-Host "Attention: Updates were found in Office LP ArrayList and will be installed in correct order." -ForegroundColor "DarkGray"}
+		if (($OfficePKArrayList -notlike $Null)) {Write-Host "Attention: Updates were found in Office PK ArrayList and will be installed in correct order." -ForegroundColor "DarkGray"}
+		if (($OfficeArrayList -notlike $Null)) {Write-Host "`n"}
 
 		ForEach ($Update in $OfficeUpdates) {
-			if (($Update.BaseName -in $OfficeCoreArraylist)) {Install-MSPUpdate -MSPFile $($Update.FullName)}
+			if (($Update.BaseName -in $OfficeCoreArrayList)) {Install-MSPUpdate -MSPFile $($Update.FullName)}
 		}
 
 		#=========================================================================================
-		#	Installing Microsoft Office Updates Defined in Arraylist for Language Interface Pack
+		#	Installing Microsoft Office Updates Defined in ArrayList for Language Interface Pack
 		#=========================================================================================
 
 		ForEach ($Update in $OfficeUpdates) {
-			if (($Update.BaseName -in $OfficeLIPArraylist)) {Install-MSPUpdate -MSPFile $($Update.FullName)}
+			if (($Update.BaseName -in $OfficeLIPArrayList)) {Install-MSPUpdate -MSPFile $($Update.FullName)}
 		}
 
 		#=========================================================================================
-		#	Installing Microsoft Office Updates Defined in Arraylist for Language Pack
+		#	Installing Microsoft Office Updates Defined in ArrayList for Language Pack
 		#=========================================================================================
 
 		ForEach ($Update in $OfficeUpdates) {
-			if (($Update.BaseName -in $OfficeLPArraylist)) {Install-MSPUpdate -MSPFile $($Update.FullName)}
+			if (($Update.BaseName -in $OfficeLPArrayList)) {Install-MSPUpdate -MSPFile $($Update.FullName)}
 		}
 
 		#=========================================================================================
-		#	Installing Microsoft Office Updates Defined in Arraylist for Proofing Tools Kit
+		#	Installing Microsoft Office Updates Defined in ArrayList for Proofing Tools Kit
 		#=========================================================================================
 
 		ForEach ($Update in $OfficeUpdates) {
-			if (($Update.BaseName -in $OfficePKArraylist)) {Install-MSPUpdate -MSPFile $($Update.FullName)}
+			if (($Update.BaseName -in $OfficePKArrayList)) {Install-MSPUpdate -MSPFile $($Update.FullName)}
 		}
 
 		#=========================================================================================
@@ -374,7 +374,7 @@
 		#=========================================================================================
 
 		ForEach ($Update in $OfficeUpdates) {
-			if (($Update.BaseName -notin $OfficeArraylist)) {Install-MSPUpdate -MSPFile $($Update.FullName)}
+			if (($Update.BaseName -notin $OfficeArrayList)) {Install-MSPUpdate -MSPFile $($Update.FullName)}
 		}
 
 		#=========================================================================================
