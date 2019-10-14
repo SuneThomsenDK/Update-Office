@@ -43,10 +43,10 @@
 	Changes the default path to the path specified and shows all available Office updates in GridView
 
 .NOTES
-	Version: 1.9.3.15
+	Version: 19.10.9.0
 	Author: Sune Thomsen
 	Creation date: 22-02-2019
-	Last modified date: 15-03-2019
+	Last modified date: 09-10-2019
 
 .LINK
 	https://github.com/SuneThomsenDK
