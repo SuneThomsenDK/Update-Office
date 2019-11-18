@@ -1,5 +1,5 @@
 kohhc-x-none
-nlgmsproof-x-none.msp
+nlgmsproof-x-none
 osetup-x-none
 ospp-x-none
 proof-x-none

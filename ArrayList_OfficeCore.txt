@@ -18,6 +18,7 @@ msodll40ui-x-none
 msodll99l-x-none
 msohevi-x-none
 mtextra-x-none
+namectlserver-x-none
 oart-x-none
 oleo-x-none
 orgidcrl-x-none
