@@ -3,8 +3,8 @@
 	Install Microsoft Office Professional Plus 2010, 2013 and 2016 updates offline
 
 .DESCRIPTION
-	The purpose of this script is to install Office updates offline or during SCCM OS Deployment instead of WSUS, which takes forever to complete
-	This script reduced our SCCM OS Deployment time by 20-30 minutes depending on the hardware configuration
+	The purpose of this script is to install Office updates offline or during ConfigMgr OS Deployment instead of WSUS, which takes forever to complete
+	This script reduced our ConfigMgr OS Deployment time by 20-30 minutes depending on the hardware configuration
 
 	If you are installing Language Packs, Language Interface Packs or Proofing Tools Kits, you have to install updates in a specific order and
 	that's done by adding them to the following ArrayLists:
@@ -43,10 +43,10 @@
 	Changes the default path to the path specified and shows all available Office updates in GridView
 
 .NOTES
-	Version: 19.10.9.0
+	Version: 19.11.19.0
 	Author: Sune Thomsen
 	Creation date: 22-02-2019
-	Last modified date: 09-10-2019
+	Last modified date: 19-11-2019
 
 .LINK
 	https://github.com/SuneThomsenDK
