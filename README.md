@@ -4,7 +4,7 @@ These scripts are not official supported by Microsoft. All scripts are provided 
 
 # Update-Office
 
-The purpose of this script is to install Office updates offline or during SCCM OS Deployment instead of WSUS, which takes forever to complete! This script reduced our SCCM OS Deployment time by 20-30 minutes depending on the hardware configuration
+The purpose of this script is to install Office updates offline or during ConfigMgr OS Deployment instead of WSUS, which takes forever to complete! This script reduced our ConfigMgr OS Deployment time by 20-30 minutes depending on the hardware configuration
 
 If you are installing Language Packs, Language Interface Packs or Proofing Tools Kits, you have to install updates in a specific order and that's done by adding them to the following ArrayLists:
 
