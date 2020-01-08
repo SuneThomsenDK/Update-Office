@@ -36,6 +36,7 @@ stslist-x-none
 stsupld-x-none
 vbe7-x-none
 visio-x-none
+vviewer-x-none
 wxpcore-x-none
 wxpnse-x-none
 xdext-x-none
